@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa Interactivo de Casas</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        #map {
+            height: calc(100vh - 120px);
+            width: 100%;
+        }
+        
+        .header-bar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .info-panel {
+            background: white;
+            padding: 1rem;
+            border-top: 3px solid #667eea;
+        }
+        
+        .legend {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border-radius: 50%;
+            border: 2px solid rgba(0,0,0,0.2);
+        }
+        
+        .price-low { background-color: #10b981; }
+        .price-medium { background-color: #f59e0b; }
+        .price-high { background-color: #ef4444; }
+        
+        .custom-popup {
+            min-width: 250px;
+        }
+        
+        .popup-price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+            margin: 0.5rem 0;
+        }
+        
+        .popup-detail {
+            font-size: 0.9rem;
+            margin: 0.25rem 0;
+            color: #4b5563;
+        }
+        
+        .btn-back {
+            background: white;
+            color: #667eea;
+            border: 2px solid white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-back:hover {
+            background: transparent;
+            color: white;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header-bar">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="mb-0">
+                        <i class="fas fa-map-marked-alt"></i>
+                        Mapa Interactivo de Precios
+                    </h3>
+                    <small>Haz click en los marcadores para ver detalles</small>
+                </div>
+                <div>
+                    <a href="/" class="btn btn-back me-2">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        Volver al Predictor
+                    </a>
+                    <a href="/analisis-estadistico" class="btn btn-back">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Análisis Estadístico
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Mapa -->
+    <div id="map"></div>
+    
+    <!-- Panel de Información -->
+    <div class="info-panel">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-3">
+                    <div class="legend">
+                        <h6 class="mb-3"><strong>Leyenda de Precios</strong></h6>
+                        <div class="legend-item">
+                            <div class="legend-color price-low"></div>
+                            <span>Bajo (< $150,000)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color price-medium"></div>
+                            <span>Medio ($150,000 - $250,000)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color price-high"></div>
+                            <span>Alto (> $250,000)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-9">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <h5 id="totalCasas">0</h5>
+                            <small class="text-muted">Casas Mostradas</small>
+                        </div>
+                        <div class="col-md-3">
+                            <h5 id="precioPromedio">$0</h5>
+                            <small class="text-muted">Precio Promedio</small>
+                        </div>
+                        <div class="col-md-3">
+                            <h5 id="precioMin">$0</h5>
+                            <small class="text-muted">Precio Mínimo</small>
+                        </div>
+                        <div class="col-md-3">
+                            <h5 id="precioMax">$0</h5>
+                            <small class="text-muted">Precio Máximo</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Datos de casas desde el servidor
+        const casasData = {{ casas|safe }};
+        
+        // Inicializar mapa centrado en Saratoga, NY (aproximadamente)
+        const map = L.map('map').setView([43.08, -73.78], 11);
+        
+        // Agregar capa de mapa (OpenStreetMap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 18
+        }).addTo(map);
+        
+        // Función para determinar el color según el precio
+        function getPriceColor(precio) {
+            if (precio < 150000) return '#10b981'; // Verde
+            if (precio < 250000) return '#f59e0b'; // Naranja
+            return '#ef4444'; // Rojo
+        }
+        
+        // Función para crear el popup con información de la casa
+        function createPopupContent(casa) {
+            return `
+                <div class="custom-popup">
+                    <h6><i class="fas fa-home"></i> Propiedad</h6>
+                    <div class="popup-price">$${casa.precio.toLocaleString('en-US')}</div>
+                    <hr>
+                    <div class="popup-detail">
+                        <i class="fas fa-ruler-combined"></i>
+                        <strong>Metros totales:</strong> ${casa.metros_totales} m²
+                    </div>
+                    <div class="popup-detail">
+                        <i class="fas fa-bed"></i>
+                        <strong>Dormitorios:</strong> ${casa.dormitorios}
+                    </div>
+                    <div class="popup-detail">
+                        <i class="fas fa-bath"></i>
+                        <strong>Baños:</strong> ${casa.banyos}
+                    </div>
+                    <div class="popup-detail">
+                        <i class="fas fa-calendar-alt"></i>
+                        <strong>Antigüedad:</strong> ${casa.antiguedad} años
+                    </div>
+                    ${casa.vistas_lago === 'Yes' ? '<div class="popup-detail text-primary"><i class="fas fa-water"></i> <strong>Con vistas al lago</strong></div>' : ''}
+                    ${casa.nueva_construccion === 'Yes' ? '<div class="popup-detail text-success"><i class="fas fa-star"></i> <strong>Nueva construcción</strong></div>' : ''}
+                </div>
+            `;
+        }
+        
+        // Agregar marcadores al mapa
+        if (casasData && casasData.length > 0) {
+            // Calcular estadísticas
+            let totalPrecios = 0;
+            let minPrecio = Infinity;
+            let maxPrecio = -Infinity;
+            
+            casasData.forEach((casa, index) => {
+                // Generar coordenadas aleatorias cercanas a Saratoga
+                // En un caso real, las coordenadas vendrían del dataset
+                const lat = 43.08 + (Math.random() - 0.5) * 0.2;
+                const lng = -73.78 + (Math.random() - 0.5) * 0.2;
+                
+                // Calcular estadísticas
+                totalPrecios += casa.precio;
+                minPrecio = Math.min(minPrecio, casa.precio);
+                maxPrecio = Math.max(maxPrecio, casa.precio);
+                
+                // Crear marcador con color según precio
+                const color = getPriceColor(casa.precio);
+                
+                const marker = L.circleMarker([lat, lng], {
+                    radius: 8,
+                    fillColor: color,
+                    color: 'white',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }).addTo(map);
+                
+                // Agregar popup
+                marker.bindPopup(createPopupContent(casa));
+                
+                // Efecto hover
+                marker.on('mouseover', function() {
+                    this.setRadius(12);
+                    this.setStyle({ weight: 3 });
+                });
+                
+                marker.on('mouseout', function() {
+                    this.setRadius(8);
+                    this.setStyle({ weight: 2 });
+                });
+            });
+            
+            // Actualizar estadísticas en el panel
+            const precioPromedio = totalPrecios / casasData.length;
+            document.getElementById('totalCasas').textContent = casasData.length;
+            document.getElementById('precioPromedio').textContent = '$' + Math.round(precioPromedio).toLocaleString('en-US');
+            document.getElementById('precioMin').textContent = '$' + minPrecio.toLocaleString('en-US');
+            document.getElementById('precioMax').textContent = '$' + maxPrecio.toLocaleString('en-US');
+        } else {
+            // Mostrar mensaje si no hay datos
+            document.getElementById('totalCasas').textContent = '0';
+            document.getElementById('precioPromedio').textContent = 'N/A';
+            document.getElementById('precioMin').textContent = 'N/A';
+            document.getElementById('precioMax').textContent = 'N/A';
+            
+            L.popup()
+                .setLatLng([43.08, -73.78])
+                .setContent('<p><strong>No hay datos disponibles</strong><br>Ejecuta primero el entrenamiento del modelo.</p>')
+                .openOn(map);
+        }
+    </script>
+</body>
+</html>
+
