@@ -10,7 +10,7 @@ env/
 .venv
 
 # Modelos entrenados
-model/*.pkl
+model/artifacts/*.pkl
 *.pkl
 
 # Datos

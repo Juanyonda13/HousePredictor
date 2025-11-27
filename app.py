@@ -10,7 +10,7 @@ if __name__ == "__main__":
 
     if not app.extensions["model_service"].has_any_model():
         print("\n  ⚠️  ADVERTENCIA: Ningún modelo encontrado")
-        print("   Ejecuta primero: python3 analisis_estadistico.py\n")
+        print("   Ejecuta primero: python model/pipelines/analisis_estadistico.py\n")
     else:
         print("\n Modelos cargados correctamente ✅\n")
 
