@@ -1,6 +1,6 @@
-from pathlib import Path
-
 from flask import Flask, render_template
+
+from app.common.config import STATIC_PATH, TEMPLATES_PATH
 
 from .routes.api import api_bp
 from .routes.web import web_bp
@@ -8,14 +8,11 @@ from .services.model_service import ModelService
 from .services.stats_service import StatsService
 
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-
 def create_app() -> Flask:
     app = Flask(
         __name__,
-        template_folder=str(BASE_DIR / "templates"),
-        static_folder=str(BASE_DIR / "static"),
+        template_folder=str(TEMPLATES_PATH),
+        static_folder=str(STATIC_PATH),
     )
     app.config["SECRET_KEY"] = "tu-clave-secreta-aqui"
 

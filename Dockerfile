@@ -12,6 +12,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+RUN mkdir -p model/artifacts
+
 RUN chmod +x /app/entrypoint.sh || true
 
 EXPOSE 5000

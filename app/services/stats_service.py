@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from typing import Any, Dict
 
 import pandas as pd
 
+from app.common.config import DATA_PATH
 from model.domain.analisis_distribuciones import AnalisisEstadistico
 
 
@@ -31,12 +31,10 @@ def _convertir_numpy_a_nativo(obj):
 class StatsService:
     """Maneja operaciones basadas en el dataset SaratogaHouses."""
 
-    DATA_PATH = Path("data/SaratogaHouses.csv")
-
     def _cargar_dataset(self) -> pd.DataFrame:
-        if not self.DATA_PATH.exists():
+        if not DATA_PATH.exists():
             raise FileNotFoundError("Datos no disponibles. Ejecuta el análisis estadístico primero.")
-        return pd.read_csv(self.DATA_PATH)
+        return pd.read_csv(DATA_PATH)
 
     def obtener_muestra_casas(self, max_registros: int = 100) -> str:
         try:

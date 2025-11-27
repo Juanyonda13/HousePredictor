@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 
+from app.common.config import ARTIFACTS_PATH
 from model.domain.regresion_bayesiana import ModeloRegresionBayesiana
 from model.domain.regresion_lineal import ModeloRegresionLineal
 
