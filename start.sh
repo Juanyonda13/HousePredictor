@@ -7,23 +7,26 @@ echo "🏠 Sistema de Predicción de Precios de Casas"
 echo "=============================================="
 echo ""
 
-# Verificar si existe el modelo
-if [ ! -f "model/modelo_casas.pkl" ]; then
-    echo "⚠️  Modelo no encontrado"
-    echo "📊 Iniciando entrenamiento del modelo..."
+# Verificar si existen los modelos estadísticos (OLS y Bayesiano)
+OLS_MODEL="model/modelo_regresion_lineal.pkl"
+BAYES_MODEL="model/modelo_regresion_bayesiana.pkl"
+
+if [ ! -f "$OLS_MODEL" ] || [ ! -f "$BAYES_MODEL" ]; then
+    echo "⚠️  Modelos estadísticos no encontrados"
+    echo "📊 Ejecutando análisis estadístico completo..."
     echo ""
-    python3 model/train.py
+    python3 analisis_estadistico.py
     
     if [ $? -eq 0 ]; then
         echo ""
-        echo "✅ Modelo entrenado exitosamente"
+        echo "✅ Modelos entrenados y análisis completado"
     else
         echo ""
-        echo "❌ Error en el entrenamiento"
+        echo "❌ Error en el análisis estadístico"
         exit 1
     fi
 else
-    echo "✅ Modelo encontrado"
+    echo "✅ Modelos estadísticos encontrados"
 fi
 
 echo ""

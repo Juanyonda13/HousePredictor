@@ -17,10 +17,6 @@ from model.analisis_distribuciones import AnalisisEstadistico
 
 
 def convertir_numpy_a_nativo(obj):
-    """
-    Convierte recursivamente valores de NumPy a tipos nativos de Python
-    para que sean JSON serializables
-    """
     if isinstance(obj, np.integer):
         return int(obj)
     elif isinstance(obj, np.floating):
