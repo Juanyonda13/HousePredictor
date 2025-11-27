@@ -450,7 +450,7 @@ class ModeloRegresionBayesiana:
         
         return pasos
     
-    def guardar(self, ruta: str = 'model/modelo_regresion_bayesiana.pkl'):
+    def guardar(self, ruta: str = 'model/artifacts/modelo_regresion_bayesiana.pkl'):
         """Guarda el modelo entrenado"""
         if not self.trained:
             raise ValueError("No hay modelo entrenado para guardar")
@@ -471,7 +471,7 @@ class ModeloRegresionBayesiana:
         print(f" Modelo Bayesiano guardado en: {ruta}")
     
     @classmethod
-    def cargar(cls, ruta: str = 'model/modelo_regresion_bayesiana.pkl'):
+    def cargar(cls, ruta: str = 'model/artifacts/modelo_regresion_bayesiana.pkl'):
         """Carga un modelo previamente guardado"""
         instancia = cls()
         

@@ -341,7 +341,7 @@ class ModeloRegresionLineal:
         
         return coef
     
-    def guardar(self, ruta: str = 'model/modelo_regresion_lineal.pkl'):
+    def guardar(self, ruta: str = 'model/artifacts/modelo_regresion_lineal.pkl'):
         """Guarda el modelo entrenado"""
         if not self.trained:
             raise ValueError("No hay modelo entrenado para guardar")
@@ -372,7 +372,7 @@ class ModeloRegresionLineal:
             # Si es el modelo directo (guardado por analisis_estadistico.py)
             instancia.modelo = data
             # Cargar variables desde archivo separado
-            vars_file = 'model/variables_modelo.pkl'
+            vars_file = 'model/artifacts/variables_modelo.pkl'
             if os.path.exists(vars_file):
                 with open(vars_file, 'rb') as vf:
                     instancia.variables = pickle.load(vf)
@@ -419,7 +419,7 @@ def entrenar_y_guardar():
     modelo.guardar()
     
     # Guardar también variables
-    with open('model/variables_modelo.pkl', 'wb') as f:
+    with open('model/artifacts/variables_modelo.pkl', 'wb') as f:
         pickle.dump(modelo.variables, f)
     
     print("\n" + "="*80)

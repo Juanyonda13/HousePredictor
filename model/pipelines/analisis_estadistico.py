@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from model.regresion_lineal import ModeloRegresionLineal
-from model.regresion_bayesiana import ModeloRegresionBayesiana
+from model.domain.regresion_lineal import ModeloRegresionLineal
+from model.domain.regresion_bayesiana import ModeloRegresionBayesiana
 
 warnings.filterwarnings("ignore")
 
@@ -44,7 +44,7 @@ def entrenar_modelo_ols(df: pd.DataFrame) -> dict:
     metricas_ols = modelo_ols.entrenar(df)
     modelo_ols.guardar()
 
-    print("\n✅ Modelo OLS guardado en model/modelo_regresion_lineal.pkl")
+    print("\n✅ Modelo OLS guardado en model/artifacts/modelo_regresion_lineal.pkl")
     print("   Variables utilizadas:", ", ".join(modelo_ols.variables))
     print(
         f"   R²: {metricas_ols['r2']:.4f} "
@@ -65,7 +65,7 @@ def entrenar_modelo_bayesiano(df: pd.DataFrame) -> dict:
     metricas_bayes = modelo_bayes.entrenar(df)
     modelo_bayes.guardar()
 
-    print("\n✅ Modelo Bayesiano guardado en model/modelo_regresion_bayesiana.pkl")
+    print("\n✅ Modelo Bayesiano guardado en model/artifacts/modelo_regresion_bayesiana.pkl")
     print(
         f"   R²: {metricas_bayes['r2']:.4f} "
         f"({metricas_bayes['r2'] * 100:.2f}%) | "
