@@ -64,7 +64,21 @@ class ModeloRegresionLineal:
     
     def entrenar(self, df: pd.DataFrame) -> Dict:
         """
-        Entrena el modelo de regresión lineal
+        Entrena el modelo de regresión lineal usando el método de Mínimos Cuadrados Ordinarios (OLS)
+        
+        Método OLS:
+        El método de Mínimos Cuadrados Ordinarios estima los coeficientes β minimizando la suma
+        de los cuadrados de los residuos: min Σ(yᵢ - ŷᵢ)²
+        
+        Fórmula de estimación de coeficientes:
+        β = (X'X)⁻¹X'y
+        
+        Donde:
+        - X: Matriz de diseño (variables independientes + constante)
+        - y: Vector de variable dependiente (precio)
+        - β: Vector de coeficientes estimados
+        - X': Transpuesta de X
+        - (X'X)⁻¹: Inversa de la matriz X'X
         
         Args:
             df: DataFrame con los datos de entrenamiento
@@ -73,28 +87,87 @@ class ModeloRegresionLineal:
             Dict con métricas del modelo
         """
         print("\n Entrenando Modelo de Regresión Lineal Múltiple...")
+        print("=" * 80)
+        print(" MÉTODO: Mínimos Cuadrados Ordinarios (OLS)")
+        print("=" * 80)
+        print("\n Fórmula del modelo:")
+        print("   y = β₀ + β₁X₁ + β₂X₂ + ... + βₖXₖ + ε")
+        print("\n Estimación de coeficientes:")
+        print("   β = (X'X)⁻¹X'y")
+        print("\n Objetivo: Minimizar la suma de cuadrados de residuos")
+        print("   min Σ(yᵢ - ŷᵢ)² = min Σεᵢ²")
+        print("=" * 80)
         
         X, y = self.preparar_datos(df)
         
+        print(f"\n Dimensiones de los datos:")
+        print(f"   X (variables): {X.shape}")
+        print(f"   y (precio): {y.shape}")
+        print(f"   Variables independientes: {len(self.variables)}")
+        
         # Ajustar modelo OLS
+        print("\n Calculando coeficientes mediante OLS...")
+        print("   β = (X'X)⁻¹X'y")
         self.modelo = sm.OLS(y, X).fit()
         self.trained = True
         
-        # Calcular métricas
+        # Calcular métricas con fórmulas
+        n = len(y)  # Número de observaciones
+        k = len(self.variables)  # Número de variables (sin contar constante)
+        
+        # R² = 1 - (SS_res / SS_tot)
+        # Donde SS_res = Σ(yᵢ - ŷᵢ)² y SS_tot = Σ(yᵢ - ȳ)²
+        r2 = self.modelo.rsquared
+        
+        # R² Ajustado = 1 - [(1-R²)(n-1)/(n-k-1)]
+        r2_ajustado = self.modelo.rsquared_adj
+        
+        # RMSE = √(MSE) = √(SS_res / (n-k-1))
+        # Donde MSE = Mean Squared Error
+        rmse = np.sqrt(self.modelo.mse_resid)
+        
+        # AIC = n·ln(SS_res/n) + 2(k+1)
+        aic = self.modelo.aic
+        
+        # BIC = n·ln(SS_res/n) + (k+1)·ln(n)
+        bic = self.modelo.bic
+        
         metricas = {
-            'r2': self.modelo.rsquared,
-            'r2_ajustado': self.modelo.rsquared_adj,
-            'rmse': np.sqrt(self.modelo.mse_resid),
-            'aic': self.modelo.aic,
-            'bic': self.modelo.bic,
-            'n_observaciones': int(self.modelo.nobs)
+            'r2': r2,
+            'r2_ajustado': r2_ajustado,
+            'rmse': rmse,
+            'aic': aic,
+            'bic': bic,
+            'n_observaciones': n,
+            'n_variables': k
         }
         
-        print(f"\n Modelo entrenado exitosamente")
-        print(f"   R²: {metricas['r2']:.4f} ({metricas['r2']*100:.2f}%)")
-        print(f"   R² Ajustado: {metricas['r2_ajustado']:.4f}")
-        print(f"   RMSE: ${metricas['rmse']:,.2f}")
-        print(f"   N observaciones: {metricas['n_observaciones']}")
+        print("\n" + "=" * 80)
+        print(" RESULTADOS DEL ENTRENAMIENTO")
+        print("=" * 80)
+        print(f"\n Coeficientes estimados (β):")
+        print(f"   Intercepto (β₀): {self.modelo.params['const']:.2f}")
+        for var in self.variables:
+            if var in self.modelo.params.index:
+                print(f"   {var:20s} (β): {self.modelo.params[var]:>10.2f}")
+        
+        print(f"\n Métricas del modelo:")
+        print(f"   R² (Coeficiente de determinación):")
+        print(f"      R² = 1 - (SS_res / SS_tot) = {r2:.4f} ({r2*100:.2f}%)")
+        print(f"      Interpretación: El modelo explica el {r2*100:.2f}% de la varianza")
+        print(f"\n   R² Ajustado:")
+        print(f"      R²_adj = 1 - [(1-R²)(n-1)/(n-k-1)] = {r2_ajustado:.4f}")
+        print(f"      Interpretación: R² ajustado por el número de variables")
+        print(f"\n   RMSE (Root Mean Squared Error):")
+        print(f"      RMSE = √(MSE) = √(SS_res / (n-k-1)) = ${rmse:,.2f}")
+        print(f"      Interpretación: Error promedio de predicción")
+        print(f"\n   AIC (Akaike Information Criterion):")
+        print(f"      AIC = n·ln(SS_res/n) + 2(k+1) = {aic:.2f}")
+        print(f"\n   BIC (Bayesian Information Criterion):")
+        print(f"      BIC = n·ln(SS_res/n) + (k+1)·ln(n) = {bic:.2f}")
+        print(f"\n   Número de observaciones: {n}")
+        print(f"   Número de variables: {k}")
+        print("=" * 80)
         
         return metricas
     
